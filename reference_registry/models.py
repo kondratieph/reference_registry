@@ -7,13 +7,11 @@ class ReferenceBook(models.Model):
 
     code = models.CharField(
         max_length=100,
-        blank=False,
         unique=True,
         verbose_name='Код справочника',
     )
     name = models.CharField(
         max_length=300,
-        blank=False,
         verbose_name='Наименование'
     )
     description = models.TextField(
@@ -53,7 +51,6 @@ class ReferenceBookVersion(models.Model):
     )
     version = models.CharField(
         max_length=50,
-        blank=False,
         verbose_name='Версия'
     )
     valid_from = models.DateField(
@@ -90,12 +87,10 @@ class ReferenceBookItem(models.Model):
     )
     code = models.CharField(
         max_length=100,
-        blank=False,
         verbose_name='Код элемента'
     )
     value = models.CharField(
         max_length=300,
-        blank=False,
         verbose_name='Значение элемента'
     )
 
