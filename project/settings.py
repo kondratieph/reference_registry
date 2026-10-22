@@ -121,3 +121,5 @@ SWAGGER_SETTINGS = {
         },
     },
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
