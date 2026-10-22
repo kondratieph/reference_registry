@@ -1,9 +1,13 @@
 from datetime import timedelta
-
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.utils import timezone
 
-from reference_registry.models import ReferenceBook, ReferenceBookVersion
+from reference_registry.models import (
+    ReferenceBook,
+    ReferenceBookItem,
+    ReferenceBookVersion,
+)
 
 
 class ActualBooksOnDateTest(TestCase):
@@ -79,3 +83,103 @@ class BookCurrentVersionTest(TestCase):
 
     def test_defaults_to_today(self):
         self.assertEqual(self.book.book_current_version(), self.v_new)
+
+class ReferenceBookUniquenessTest(TestCase):
+    def test_code_is_unique(self):
+        ReferenceBook.objects.create(code='X', name='X')
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ReferenceBook.objects.create(code='X', name='Y')
+
+
+class ReferenceBookVersionUniquenessTest(TestCase):
+    def setUp(self):
+        self.book = ReferenceBook.objects.create(code='X', name='X')
+
+    def test_book_version_pair_is_unique(self):
+        ReferenceBookVersion.objects.create(
+            reference_book=self.book, version='1.0',
+            valid_from=timezone.localdate(),
+        )
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ReferenceBookVersion.objects.create(
+                    reference_book=self.book, version='1.0',
+                    valid_from=timezone.localdate() + timedelta(days=1),
+                )
+
+    def test_book_valid_from_pair_is_unique(self):
+        ReferenceBookVersion.objects.create(
+            reference_book=self.book, version='1.0',
+            valid_from=timezone.localdate(),
+        )
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ReferenceBookVersion.objects.create(
+                    reference_book=self.book, version='2.0',
+                    valid_from=timezone.localdate(),
+                )
+
+
+class ReferenceBookItemUniquenessTest(TestCase):
+    def setUp(self):
+        book = ReferenceBook.objects.create(code='X', name='X')
+        self.version = ReferenceBookVersion.objects.create(
+            reference_book=book, version='1.0',
+            valid_from=timezone.localdate(),
+        )
+
+    def test_version_code_pair_is_unique(self):
+        ReferenceBookItem.objects.create(
+            version=self.version, code='A', value='a',
+        )
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                ReferenceBookItem.objects.create(
+                    version=self.version, code='A', value='b',
+                )
+
+class BookCurrentVersionBoundaryTest(TestCase):
+    def setUp(self):
+        self.book = ReferenceBook.objects.create(code='X', name='X')
+        self.valid_from = timezone.localdate()
+        self.version = ReferenceBookVersion.objects.create(
+            reference_book=self.book, version='1.0',
+            valid_from=self.valid_from,
+        )
+
+    def test_returns_version_on_exact_valid_from(self):
+        self.assertEqual(
+            self.book.book_current_version(self.valid_from), self.version,
+        )
+
+    def test_returns_none_one_day_before_valid_from(self):
+        self.assertIsNone(
+            self.book.book_current_version(
+                self.valid_from - timedelta(days=1),
+            ),
+        )
+
+
+class ActualBooksOnDateBoundaryTest(TestCase):
+    def setUp(self):
+        self.book = ReferenceBook.objects.create(code='X', name='X')
+        self.valid_from = timezone.localdate()
+        ReferenceBookVersion.objects.create(
+            reference_book=self.book, version='1.0',
+            valid_from=self.valid_from,
+        )
+
+    def test_includes_book_when_date_equals_valid_from(self):
+        self.assertIn(
+            self.book,
+            ReferenceBook.actual_books_on_date(self.valid_from),
+        )
+
+    def test_excludes_book_one_day_before_valid_from(self):
+        self.assertNotIn(
+            self.book,
+            ReferenceBook.actual_books_on_date(
+                self.valid_from - timedelta(days=1),
+            ),
+        )
