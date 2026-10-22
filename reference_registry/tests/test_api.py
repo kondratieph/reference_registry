@@ -180,3 +180,10 @@ class CheckElementTest(AuthenticatedAPITest):
             {'code': 'X', 'value': 'Y'},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+class BookListIdTypeTest(AuthenticatedAPITest):
+    def test_id_is_string_in_response(self):
+        response = self.client.get('/refbooks/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for book in response.data['refbooks']:
+            self.assertIsInstance(book['id'], str)
