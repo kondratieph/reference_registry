@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.db.models import OuterRef, Subquery
 from django.utils import timezone
 
-from reference_registry. models import (
+from reference_registry.models import (
     ReferenceBook,
     ReferenceBookItem,
     ReferenceBookVersion,
