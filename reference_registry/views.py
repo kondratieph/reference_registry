@@ -69,8 +69,7 @@ class ElementsView(generics.ListAPIView):
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return ReferenceBookItem.objects.none()
-
-        book = get_object_or_404(ReferenceBook, pk=self.kwargs['pk'])
+        book = get_object_or_404(ReferenceBook, pk=self.kwargs['id'])
         version = resolve_version(
             book, self.request.query_params.get('version')
         )
@@ -84,14 +83,17 @@ class CheckElementView(APIView):
     """GET /refbooks/<id>/check_element... """
 
     @CHECK_ELEMENT_SCHEMA
-    def get(self, request, pk):
-        book = get_object_or_404(ReferenceBook, pk=pk)
+    def get(self, request, id):
+        book = get_object_or_404(ReferenceBook, pk=id)
         code = request.query_params.get('code')
         value = request.query_params.get('value')
 
         if not code or not value:
-            raise ValidationError({'detail': 'Параметры code и value обязательны.'})
-
-        version = resolve_version(book, request.query_params.get('version'))
+            raise ValidationError(
+                {'detail': 'Параметры code и value обязательны.'}
+            )
+        version = resolve_version(
+            book, request.query_params.get('version')
+        )
         is_valid = version.items.filter(code=code, value=value).exists()
         return Response({'valid': is_valid})
