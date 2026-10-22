@@ -9,12 +9,12 @@ urlpatterns = [
         name='refbook-list',
     ),
     path(
-        '<int:pk>/elements/',
+        '<int:id>/elements/',
         views.ElementsView.as_view(),
         name='refbook-elements',
     ),
     path(
-        '<int:pk>/check_element/',
+        '<int:id>/check_element/',
         views.CheckElementView.as_view(),
         name='refbook-check-element',
     ),
