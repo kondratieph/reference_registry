@@ -13,14 +13,33 @@
 - Django 6.1
 - Django REST Framework 3.18
 - drf-yasg (Swagger UI)
-- SQLite (по умолчанию)
+- PostgreSQL (через Docker Compose)
+- pytest + pytest-django
+- Docker + Docker Compose
+- GitHub Actions (CI)
 
-## Быстрый старт
+## Быстрый старт (Docker)
 
 ```bash
 # 1. Клонировать репозиторий
 git clone <repo-url>
-cd tz_reference_registry
+cd reference_registry
+
+# 2. Собрать и запустить контейнеры
+docker compose up --build
+```
+
+Приложение будет доступно по адресу `http://127.0.0.1:8000/`.
+
+Entrypoint контейнера автоматически применяет миграции, создаёт администратора
+API-токен должен быть сгенерирован самостоятельно в админке.
+
+## Быстрый старт (без Docker)
+
+```bash
+# 1. Клонировать репозиторий
+git clone <repo-url>
+cd reference_registry
 
 # 2. Создать и активировать виртуальное окружение
 python3 -m venv venv
@@ -29,8 +48,9 @@ source venv/bin/activate          # Linux / macOS
 
 # 3. Установить зависимости
 pip install -r requirements.txt
+pip install -r requirements-test.txt
 
-# 4. Применить миграции
+# 4. Применить миграции (требуется запущенный PostgreSQL)
 python manage.py migrate
 
 # 5. Создать администратора (для входа в /admin/)
@@ -39,8 +59,6 @@ python manage.py createsuperuser
 # 6. Запустить сервер разработки
 python manage.py runserver
 ```
-
-Сервер будет доступен по адресу `http://127.0.0.1:8000/`.
 
 ## Наполнение данными
 
@@ -51,26 +69,6 @@ python manage.py runserver
 ## Аутентификация
 
 Все эндпоинты API требуют токен (`TokenAuthentication`).
-
-### Получить токен
-
-```bash
-curl -X POST http://127.0.0.1:8000/api-token-auth/ \
-     -H "Content-Type: application/json" \
-     -d '{"username": "admin", "password": "ваш_пароль"}'
-```
-
-Ответ:
-
-```json
-{"token": "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"}
-```
-
-**Альтернатива** — создать токен из консоли:
-
-```bash
-python manage.py drf_create_token admin
-```
 
 ### Использовать токен
 
@@ -167,7 +165,11 @@ http://127.0.0.1:8000/swagger/
 ## Тесты
 
 ```bash
-python manage.py test reference_registry
+# Через Docker
+docker compose exec reference-registry-service pytest
+
+# Локально (требуется запущенный PostgreSQL)
+pytest
 ```
 
 Покрыто: модели (правило «актуальной версии», границы дат, уникальность),
@@ -177,9 +179,17 @@ API (все три эндпоинта, успешные и ошибочные с
 ## Структура проекта
 
 ```
-tz_reference_registry/
+reference_registry/
 ├── manage.py
 ├── requirements.txt
+├── requirements-test.txt
+├── Dockerfile
+├── docker-compose.yaml
+├── entrypoint_local.sh
+├── pytest.ini
+├── .github/
+│   └── workflows/
+│       └── tests.yaml
 ├── project/                 # настройки Django
 │   ├── settings.py
 │   └── urls.py
@@ -207,8 +217,3 @@ tz_reference_registry/
 
 `valid_from <= date` — версия включается в день начала действия.
 Если `date` на один день раньше `valid_from` — версия не действует.
-
-## Примечания
-
-- **`DEBUG = True`** оставлен по умолчанию для удобства проверки
-  (`/admin/`, отладочные страницы, статика).
