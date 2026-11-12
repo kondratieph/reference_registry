@@ -1,10 +1,12 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-$2&_xyl$^=7)e=!8m%k$j(vmf&&^r+mwwy3s#xh$#g2&65x4r*'
+# В рабочей среде замените его значением из переменной окружения SECRET_KEY.
+SECRET_KEY = 'django-insecure-dev-only-key-change-in-production'
 
-DEBUG = True
+DEBUG = os.getenv('APP_ENV') == 'LOCAL_DOCKER'
 
 ALLOWED_HOSTS = []
 
@@ -54,8 +56,12 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'reference-registry'),
+        'USER': os.getenv('POSTGRES_USER', 'postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
 
@@ -82,13 +88,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
-
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

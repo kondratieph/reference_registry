@@ -1,0 +1,31 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Django
+*.sqlite3
+staticfiles/
+media/
+
+# Env
+.env
+.env.*
+
+# Cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Git & IDE
+.git/
+.gitignore
+.idea/
+.vscode/
+
+# Logs, etc
+*.log
+.DS_Store
