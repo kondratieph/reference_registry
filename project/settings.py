@@ -122,4 +122,6 @@ SWAGGER_SETTINGS = {
     },
 }
 
+SWAGGER_USE_COMPAT_RENDERERS = False
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
