@@ -4,6 +4,9 @@
 кодов и их контекст: справочники → версии → элементы. Предоставляет REST API
 для получения справочников, их элементов и валидации элементов по коду и значению.
 
+![Tests](https://github.com/kondratieph/reference_registry/actions/workflows/tests.yaml/badge.svg)
+
+
 ## Стек
 
 - Python 3.13
